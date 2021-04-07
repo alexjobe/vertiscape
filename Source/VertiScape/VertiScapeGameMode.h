@@ -4,15 +4,25 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+
+#include "CheckpointSystem/CPInterface.h"
+
 #include "VertiScapeGameMode.generated.h"
 
 UCLASS(minimalapi)
-class AVertiScapeGameMode : public AGameModeBase
+class AVertiScapeGameMode : public AGameModeBase, public ICPInterface
 {
 	GENERATED_BODY()
 
 public:
 	AVertiScapeGameMode();
+
+	void StartPlay() override;
+
+	void SaveCheckpoint() override;
+
+	UFUNCTION(BlueprintCallable)
+	void LoadCheckpoint();
 };
 
 

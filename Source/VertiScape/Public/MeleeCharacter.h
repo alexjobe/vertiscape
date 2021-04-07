@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
+#include "VertiScape/CheckpointSystem/SavableInterface.h"
+
 #include "MeleeCharacter.generated.h"
 
 UCLASS()
-class VERTISCAPE_API AMeleeCharacter : public ACharacter
+class VERTISCAPE_API AMeleeCharacter : public ACharacter, public ISavableInterface
 {
 	GENERATED_BODY()
 
@@ -28,9 +31,6 @@ class VERTISCAPE_API AMeleeCharacter : public ACharacter
 	class UWallRunComponent* WallRunComp;
 
 public:
-	// Sets default values for this character's properties
-	AMeleeCharacter();
-
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
@@ -38,6 +38,13 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
+
+	// Sets default values for this character's properties
+	AMeleeCharacter();
+
+	virtual FSavableData SaveData() override;
+
+	virtual void LoadData(FSavableData DataToLoad) override;
 
 protected:
 	/** Calls BeginAttack on MeleeComponent */

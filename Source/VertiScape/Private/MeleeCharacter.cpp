@@ -58,6 +58,18 @@ AMeleeCharacter::AMeleeCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
+FSavableData AMeleeCharacter::SaveData()
+{
+	FSavableData SavableData;
+	SavableData.Transform = GetActorTransform();
+	return SavableData;
+}
+
+void AMeleeCharacter::LoadData(FSavableData DataToLoad)
+{
+	SetActorTransform(DataToLoad.Transform);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
