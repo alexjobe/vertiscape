@@ -3,6 +3,9 @@
 
 #include "Checkpoint.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+
+#include "SavableInterface.h"
 
 // Sets default values
 ACheckpoint::ACheckpoint()
@@ -21,15 +24,28 @@ void ACheckpoint::SetCheckpointInterface(ICPInterface* NewCheckpointInterface)
 void ACheckpoint::BeginPlay()
 {
 	Super::BeginPlay();
-
+	// Checkpoints are disabled until data is finished loading
+	SetActorEnableCollision(false);
 	TriggerBox->OnComponentBeginOverlap.AddDynamic(this, &ACheckpoint::OnTriggerOverlap);
 }
 
 void ACheckpoint::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (CheckpointInterface)
+	// Only players should activate checkpoints
+	if (!Cast<APawn>(OtherActor)->IsPlayerControlled()) return;
+
+	if (ISavableInterface* SavableActor = Cast<ISavableInterface>(OtherActor))
 	{
-		CheckpointInterface->SaveCheckpoint();
+		FString ActorLastCheckpoint = SavableActor->GetLastCheckpointName();
+		// Make sure this checkpoint isn't the last checkpoint the player activated
+		if (ActorLastCheckpoint == this->GetName()) return;
+		// Update the player's last checkpoint to this one
+		SavableActor->SetLastCheckpointName(this->GetName());
+
+		if (CheckpointInterface)
+		{
+			CheckpointInterface->SaveCheckpoint(this);
+		}
 	}
 }
 

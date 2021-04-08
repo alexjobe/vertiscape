@@ -3,12 +3,17 @@
 
 #include "MeleeComponent.h"
 #include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values for this component's properties
 UMeleeComponent::UMeleeComponent()
 {
+	PrimaryComponentTick.bCanEverTick = false;
+	SetAutoActivate(true);
+
 	bIsAttacking = false;
+	Damage = 10.f;
 	HitSphereRadius = 80.f;
 	TimeToHit = 0.2f;
 	TimeToReset = 0.35f;
@@ -21,12 +26,13 @@ void UMeleeComponent::BeginPlay()
 	MyOwner = GetOwner();
 	check(MyOwner)
 	ActorsToIgnore.Add(MyOwner);
+	bIsAttacking = false;
 }
 
 void UMeleeComponent::BeginAttack()
 {
 	if (bIsAttacking) return;
-	check(MyOwner)
+	if (!MyOwner) return;
 
 	bIsAttacking = true;
 	OnBeginAttack.Broadcast();
@@ -38,14 +44,9 @@ void UMeleeComponent::BeginAttack()
 
 void UMeleeComponent::CreateHitSphere()
 {
-	TArray <AActor*> HitActors;
-	bool bHitSomething = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetComponentLocation(), HitSphereRadius, ObjectTypes, nullptr, ActorsToIgnore, HitActors);
 	DrawDebugSphere(GetWorld(), GetComponentLocation(), HitSphereRadius, 12, FColor::Red, false, 2.f);
 
-	if (bHitSomething)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Hit something!"));
-	}
+	UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetComponentLocation(), HitSphereRadius, DamageType, ActorsToIgnore, MyOwner, MyOwner->GetInstigatorController(), true);
 }
 
 void UMeleeComponent::ResetAttack()

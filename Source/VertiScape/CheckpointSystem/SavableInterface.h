@@ -16,6 +16,9 @@ struct FSavableData
 
 	UPROPERTY()
 	bool bIsActive;
+
+	UPROPERTY()
+	FString LastCheckpointName;
 };
 
 // This class does not need to be modified.
@@ -36,4 +39,6 @@ class VERTISCAPE_API ISavableInterface
 public:
 	virtual FSavableData SaveData() = 0;
 	virtual void LoadData(FSavableData DataToLoad) = 0;
+	virtual FString GetLastCheckpointName() = 0;
+	virtual void SetLastCheckpointName(FString LastCheckpointName) = 0;
 };

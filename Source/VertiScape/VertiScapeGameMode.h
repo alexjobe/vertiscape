@@ -19,10 +19,13 @@ public:
 
 	void StartPlay() override;
 
-	void SaveCheckpoint() override;
+	void SaveCheckpoint(ACheckpoint* NewCheckpoint) override;
 
 	UFUNCTION(BlueprintCallable)
 	void LoadCheckpoint();
+
+	UFUNCTION()
+	void LoadCheckpointCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData);
 };
 
 

@@ -10,8 +10,9 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "VertiScape/CheckpointSystem/Checkpoint.h"
+#include "VertiScape/Components/HealthComponent.h"
 #include "VertiScape/Components/MeleeComponent.h"
-#include "VertiScape/Components/WallRunComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AMeleeCharacter
@@ -51,23 +52,39 @@ AMeleeCharacter::AMeleeCharacter()
 	MeleeComp = CreateDefaultSubobject<UMeleeComponent>(TEXT("MeleeCombat"));
 	MeleeComp->SetupAttachment(RootComponent);
 
-	// Wall Running
-	WallRunComp = CreateDefaultSubobject<UWallRunComponent>(TEXT("WallRunning"));
+	// Create health component
+	HealthComp = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComp"));
+	bIsDead = false;
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Save System
+
+FString AMeleeCharacter::GetLastCheckpointName()
+{
+	return LastCheckpointName;
+}
+
+void AMeleeCharacter::SetLastCheckpointName(FString NewCheckpointName)
+{
+	LastCheckpointName = NewCheckpointName;
 }
 
 FSavableData AMeleeCharacter::SaveData()
 {
 	FSavableData SavableData;
 	SavableData.Transform = GetActorTransform();
+	SavableData.LastCheckpointName = LastCheckpointName;
 	return SavableData;
 }
 
 void AMeleeCharacter::LoadData(FSavableData DataToLoad)
 {
 	SetActorTransform(DataToLoad.Transform);
+	LastCheckpointName = DataToLoad.LastCheckpointName;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,9 +95,6 @@ void AMeleeCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AMeleeCharacter::BeginMeleeAttack);
-
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMeleeCharacter::WallRunJump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMeleeCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMeleeCharacter::MoveRight);
@@ -101,16 +115,32 @@ void AMeleeCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AMeleeCharacter::OnResetVR);
 }
 
+void AMeleeCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (HealthComp)
+	{
+		HealthComp->OnHealthChanged.AddDynamic(this, &AMeleeCharacter::OnHealthChanged);
+	}
+}
+
+void AMeleeCharacter::OnHealthChanged(class UHealthComponent* HealthComponent, float Health, float HealthChangeAmount, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (Health <= 0.f && !bIsDead)
+	{
+		// Time to die
+		bIsDead = true;
+		GetMovementComponent()->StopMovementImmediately();
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		SetActorHiddenInGame(true);
+	}
+}
+
 void AMeleeCharacter::BeginMeleeAttack()
 {
 	check(MeleeComp)
 	MeleeComp->BeginAttack();
-}
-
-void AMeleeCharacter::WallRunJump()
-{
-	check(WallRunComp)
-	WallRunComp->Jump();
 }
 
 void AMeleeCharacter::OnResetVR()

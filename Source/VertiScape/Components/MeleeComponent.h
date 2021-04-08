@@ -21,10 +21,13 @@ public:
 	void BeginAttack();
 
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 	bool bIsAttacking;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	TSubclassOf<UDamageType> DamageType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	float Damage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timers")
 	float TimeToHit;
@@ -47,6 +50,9 @@ protected:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnBeginAttackSignature OnBeginAttack;
+
+	// Called when the game starts
+	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	void CreateHitSphere();

@@ -36,7 +36,7 @@ void AVertiScapeGameMode::StartPlay()
 	LoadCheckpoint();
 }
 
-void AVertiScapeGameMode::SaveCheckpoint()
+void AVertiScapeGameMode::SaveCheckpoint(ACheckpoint* NewCheckpoint)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Checkpoint Saved!"));
 
@@ -48,11 +48,13 @@ void AVertiScapeGameMode::SaveCheckpoint()
 		for (AActor* FoundActor : FoundActors)
 		{
 			ISavableInterface* SavableActor = Cast<ISavableInterface>(FoundActor);
-			check(SavableActor)
-			FSavableData SavableData = SavableActor->SaveData();
-			SaveGameInstance->SavableDataMap.Add(
-				UKismetSystemLibrary::GetObjectName(FoundActor), SavableData
-			);
+			if (SavableActor)
+			{
+				FSavableData SavableData = SavableActor->SaveData();
+				SaveGameInstance->SavableDataMap.Add(
+					UKismetSystemLibrary::GetObjectName(FoundActor), SavableData
+				);
+			}
 		}
 
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGameInstance, "Save1", 0);
@@ -61,8 +63,14 @@ void AVertiScapeGameMode::SaveCheckpoint()
 
 void AVertiScapeGameMode::LoadCheckpoint()
 {
-	// TODO: Make Asynchronous and Change Save Slot Name
-	if (UCPSaveGame* LoadedGame = Cast<UCPSaveGame>(UGameplayStatics::LoadGameFromSlot("Save1", 0)))
+	FAsyncLoadGameFromSlotDelegate LoadedDelegate;
+	LoadedDelegate.BindUObject(this, &AVertiScapeGameMode::LoadCheckpointCallback);
+	UGameplayStatics::AsyncLoadGameFromSlot("Save1", 0, LoadedDelegate);
+}
+
+void AVertiScapeGameMode::LoadCheckpointCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData)
+{
+	if (UCPSaveGame* LoadedGame = Cast<UCPSaveGame>(LoadedGameData))
 	{
 		TArray<AActor*> FoundActors;
 		UGameplayStatics::GetAllActorsWithInterface(GetWorld(), USavableInterface::StaticClass(), FoundActors);
@@ -72,11 +80,20 @@ void AVertiScapeGameMode::LoadCheckpoint()
 			ISavableInterface* SavableActor = Cast<ISavableInterface>(FoundActor);
 			check(SavableActor)
 			FString FoundActorName = UKismetSystemLibrary::GetObjectName(FoundActor);
+			UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *FoundActorName);
 			if (LoadedGame->SavableDataMap.Contains(FoundActorName))
 			{
 				FSavableData ActorsData = LoadedGame->SavableDataMap[FoundActorName];
 				SavableActor->LoadData(ActorsData);
 			}
 		}
+	}
+
+	TArray<AActor*> AllCheckpoints;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllCheckpoints);
+
+	for (AActor* FoundCheckpoint : AllCheckpoints)
+	{
+		FoundCheckpoint->SetActorEnableCollision(true);
 	}
 }
