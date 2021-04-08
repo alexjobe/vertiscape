@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-
-#include "CPInterface.h"
-
 #include "Checkpoint.generated.h"
 
 
@@ -19,14 +16,14 @@ public:
 	// Sets default values for this actor's properties
 	ACheckpoint();
 
-	void SetCheckpointInterface(ICPInterface* NewCheckpointInterface);
+	void SetSaveSystem(class ACPSaveSystem* NewSaveSystem);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	ICPInterface* CheckpointInterface;
+	class ACPSaveSystem* SaveSystem;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UBoxComponent* TriggerBox;

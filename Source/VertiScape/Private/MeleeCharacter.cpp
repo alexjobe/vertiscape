@@ -106,13 +106,6 @@ void AMeleeCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis("TurnRate", this, &AMeleeCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMeleeCharacter::LookUpAtRate);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AMeleeCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AMeleeCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AMeleeCharacter::OnResetVR);
 }
 
 void AMeleeCharacter::BeginPlay()
@@ -141,27 +134,6 @@ void AMeleeCharacter::BeginMeleeAttack()
 {
 	check(MeleeComp)
 	MeleeComp->BeginAttack();
-}
-
-void AMeleeCharacter::OnResetVR()
-{
-	// If VertiScape is added to a project via 'Add Feature' in the Unreal Editor the dependency on HeadMountedDisplay in VertiScape.Build.cs is not automatically propagated
-	// and a linker error will result.
-	// You will need to either:
-	//		Add "HeadMountedDisplay" to [YourProject].Build.cs PublicDependencyModuleNames in order to build successfully (appropriate if supporting VR).
-	// or:
-	//		Comment or delete the call to ResetOrientationAndPosition below (appropriate if not supporting VR)
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AMeleeCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-	Jump();
-}
-
-void AMeleeCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-	StopJumping();
 }
 
 void AMeleeCharacter::TurnAtRate(float Rate)

@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+#include "CPSaveSystem.h"
 #include "SavableInterface.h"
 
 // Sets default values
@@ -15,9 +16,9 @@ ACheckpoint::ACheckpoint()
 	RootComponent = TriggerBox;
 }
 
-void ACheckpoint::SetCheckpointInterface(ICPInterface* NewCheckpointInterface)
+void ACheckpoint::SetSaveSystem(class ACPSaveSystem* NewSaveSystem)
 {
-	this->CheckpointInterface = NewCheckpointInterface;
+	this->SaveSystem = NewSaveSystem;
 }
 
 // Called when the game starts or when spawned
@@ -42,9 +43,9 @@ void ACheckpoint::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		// Update the player's last checkpoint to this one
 		SavableActor->SetLastCheckpointName(this->GetName());
 
-		if (CheckpointInterface)
+		if (SaveSystem)
 		{
-			CheckpointInterface->SaveCheckpoint(this);
+			SaveSystem->SaveCheckpoint(this);
 		}
 	}
 }
