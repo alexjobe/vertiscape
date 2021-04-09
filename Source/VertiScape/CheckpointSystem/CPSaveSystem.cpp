@@ -40,11 +40,11 @@ void ACPSaveSystem::InitializeCheckpoints()
 	}
 }
 
-void ACPSaveSystem::SaveCheckpoint()
+void ACPSaveSystem::SaveCheckpoint(class UCPSaveGame* SaveGameInstance)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Checkpoint Saved!"));
 
-	if (UCPSaveGame* SaveGameInstance = Cast<UCPSaveGame>(UGameplayStatics::CreateSaveGameObject(UCPSaveGame::StaticClass())))
+	if (SaveGameInstance)
 	{
 		SaveAllSavables(SaveGameInstance);
 
@@ -82,6 +82,7 @@ void ACPSaveSystem::LoadCheckpointCallback(const FString& SlotName, const int32 
 	if (UCPSaveGame* LoadedGame = Cast<UCPSaveGame>(LoadedGameData))
 	{
 		LoadAllSavables(LoadedGame);
+		SaveInterface->LoadCheckpoint(LoadedGame);
 	}
 
 	EnableCheckpoints();

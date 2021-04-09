@@ -23,4 +23,5 @@ class VERTISCAPE_API ISaveSystemInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void SaveCheckpoint() = 0;
+	virtual void LoadCheckpoint(class UCPSaveGame* SaveGameInstance) = 0;
 };

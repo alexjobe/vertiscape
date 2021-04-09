@@ -21,11 +21,21 @@ public:
 
 	virtual void SaveCheckpoint() override;
 
+	virtual void LoadCheckpoint(class UCPSaveGame* SaveGameInstance) override;
+
 	virtual void ResetLevel() override;
 
 	UFUNCTION(BlueprintCallable)
 	void DeleteSavedCheckpoint();
 
+	UFUNCTION(BlueprintCallable)
+	void AddCoin();
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int32 GetNumCollectedCoins() const { return NumCollectedCoins; }
+
 private:
 	class ACPSaveSystem* SaveSystem;
+
+	int32 NumCollectedCoins;
 };

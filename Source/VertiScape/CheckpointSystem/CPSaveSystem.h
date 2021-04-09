@@ -15,7 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	ACPSaveSystem();
 
-	void SaveCheckpoint();
+	void SaveCheckpoint(class UCPSaveGame* SaveGameInstance);
 
 	void LoadSavedCheckpoint();
 
