@@ -19,6 +19,8 @@ public:
 
 	void LoadSavedCheckpoint();
 
+	void DeleteSavedCheckpoint();
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Save Data")
 	FString SaveSlotName;

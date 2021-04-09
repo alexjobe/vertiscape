@@ -15,4 +15,12 @@ public:
 	AVertiScapeGameMode();
 
 	void StartPlay() override;
+
+	virtual void ResetLevel() override;
+
+	UFUNCTION(BlueprintCallable)
+	void DeleteSavedCheckpoint();
+
+private:
+	class ACPSaveSystem* SaveSystem;
 };

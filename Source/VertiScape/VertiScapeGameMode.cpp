@@ -1,8 +1,10 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "VertiScapeGameMode.h"
-#include "VertiScapeCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
+
+#include "CheckpointSystem/CPSaveSystem.h"
 
 AVertiScapeGameMode::AVertiScapeGameMode()
 {
@@ -17,4 +19,18 @@ AVertiScapeGameMode::AVertiScapeGameMode()
 void AVertiScapeGameMode::StartPlay()
 {
 	Super::StartPlay();
+	SaveSystem = Cast<ACPSaveSystem>(UGameplayStatics::GetActorOfClass(GetWorld(), ACPSaveSystem::StaticClass()));
+}
+
+void AVertiScapeGameMode::ResetLevel()
+{
+	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
+}
+
+void AVertiScapeGameMode::DeleteSavedCheckpoint()
+{
+	if (SaveSystem)
+	{
+		SaveSystem->DeleteSavedCheckpoint();
+	}
 }

@@ -78,6 +78,7 @@ FSavableData AMeleeCharacter::SaveData()
 	FSavableData SavableData;
 	SavableData.Transform = GetActorTransform();
 	SavableData.LastCheckpointName = LastCheckpointName;
+	SavableData.bIsActive = !bIsDead;
 	return SavableData;
 }
 
@@ -85,6 +86,7 @@ void AMeleeCharacter::LoadData(FSavableData DataToLoad)
 {
 	SetActorTransform(DataToLoad.Transform);
 	LastCheckpointName = DataToLoad.LastCheckpointName;
+	if (!DataToLoad.bIsActive) DisableCharacter();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -123,17 +125,21 @@ void AMeleeCharacter::OnHealthChanged(class UHealthComponent* HealthComponent, f
 	if (Health <= 0.f && !bIsDead)
 	{
 		// Time to die
-		bIsDead = true;
-		GetMovementComponent()->StopMovementImmediately();
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		SetActorHiddenInGame(true);
+		DisableCharacter();
 	}
+}
+
+void AMeleeCharacter::DisableCharacter()
+{
+	bIsDead = true;
+	GetMovementComponent()->StopMovementImmediately();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetActorHiddenInGame(true);
 }
 
 void AMeleeCharacter::BeginMeleeAttack()
 {
-	check(MeleeComp)
-	MeleeComp->BeginAttack();
+	if(MeleeComp) MeleeComp->BeginAttack();
 }
 
 void AMeleeCharacter::TurnAtRate(float Rate)

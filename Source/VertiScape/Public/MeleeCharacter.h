@@ -14,21 +14,6 @@ class VERTISCAPE_API AMeleeCharacter : public ACharacter, public ISavableInterfa
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
-
-	/** Melee component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Attack, meta = (AllowPrivateAccess = "true"))
-	class UMeleeComponent* MeleeComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Health, meta = (AllowPrivateAccess = "true"));
-	class UHealthComponent* HealthComp;
-
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -41,13 +26,30 @@ public:
 	// Sets default values for this character's properties
 	AMeleeCharacter();
 
-	virtual FString GetLastCheckpointName();
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void SetLastCheckpointName(FString NewCheckpointName);
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	/** Returns MeleeComp subobject **/
+	FORCEINLINE class UMeleeComponent* GetMeleeComp() const { return MeleeComp; }
+
+	/** Returns HealthComp subobject **/
+	FORCEINLINE class UHealthComponent* GetHealthComp() const { return HealthComp; }
+	
+	//////////////////////////////////////////////////////////////////////////
+	// SavableInterface
 	virtual FSavableData SaveData() override;
 
 	virtual void LoadData(FSavableData DataToLoad) override;
+
+	virtual FString GetLastCheckpointName() override;
+
+	virtual void SetLastCheckpointName(FString NewCheckpointName) override;
 
 protected:
 	// Character is dead
@@ -62,6 +64,8 @@ protected:
 
 	UFUNCTION()
 	void OnHealthChanged(class UHealthComponent* HealthComponent, float Health, float HealthChangeAmount, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
+
+	virtual void DisableCharacter();
 
 	/** Calls BeginAttack on MeleeComponent */
 	void BeginMeleeAttack();
@@ -84,19 +88,20 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-public:	
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+private:
+	/** Camera boom positioning the camera behind the character */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent* CameraBoom;
 
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Follow camera */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FollowCamera;
 
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	/** Melee component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+	class UMeleeComponent* MeleeComp;
 
-	/** Returns MeleeComp subobject **/
-	FORCEINLINE class UMeleeComponent* GetMeleeComp() const { return MeleeComp; }
-
-	/** Returns HealthComp subobject **/
-	FORCEINLINE class UHealthComponent* GetHealthComp() const { return HealthComp; }
+	/** Health component */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"));
+	class UHealthComponent* HealthComp;
 };

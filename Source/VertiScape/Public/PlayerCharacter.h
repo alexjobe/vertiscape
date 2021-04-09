@@ -28,6 +28,16 @@ public:
 	FORCEINLINE class UWallRunComponent* GetWallRunComp() const { return WallRunComp; }
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timers")
+	float TimeToRespawn;
+
+	FTimerHandle TimerHandle_TimeToRespawn;
+
 	/** Calls Jump on WallRunComponent */
 	void WallRunJump();
+
+	virtual void DisableCharacter() override;
+
+	UFUNCTION()
+	void RestartFromCheckpoint();
 };

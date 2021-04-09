@@ -4,8 +4,8 @@
 #include "CPSaveSystem.h"
 #include "Kismet/GameplayStatics.h"
 
-#include "CPSaveGame.h"
 #include "Checkpoint.h"
+#include "CPSaveGame.h"
 
 // Sets default values
 ACPSaveSystem::ACPSaveSystem()
@@ -112,4 +112,10 @@ void ACPSaveSystem::EnableCheckpoints()
 	{
 		FoundCheckpoint->SetActorEnableCollision(true);
 	}
+}
+
+void ACPSaveSystem::DeleteSavedCheckpoint()
+{
+	UGameplayStatics::DeleteGameInSlot(SaveSlotName, 0);
+	UE_LOG(LogTemp, Warning, TEXT("Save Deleted!"));
 }
