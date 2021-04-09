@@ -30,7 +30,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// Finds all checkpoints and initializes them
+	// Finds all checkpoints and sets their SaveSystem to this
 	void InitializeCheckpoints();
 
 	// Finds all actors that implement SavableInterface, and calls their SaveData function

@@ -16,14 +16,14 @@ public:
 	// Sets default values for this actor's properties
 	ACheckpoint();
 
-	void SetSaveSystem(class ACPSaveSystem* NewSaveSystem);
+	void SetSaveInterface(class ISaveSystemInterface* NewSaveInterface);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	class ACPSaveSystem* SaveSystem;
+	class ISaveSystemInterface* SaveInterface;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	class UBoxComponent* TriggerBox;

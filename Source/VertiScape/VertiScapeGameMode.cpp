@@ -20,6 +20,12 @@ void AVertiScapeGameMode::StartPlay()
 {
 	Super::StartPlay();
 	SaveSystem = Cast<ACPSaveSystem>(UGameplayStatics::GetActorOfClass(GetWorld(), ACPSaveSystem::StaticClass()));
+	if(SaveSystem) SaveSystem->SetSaveInterface(this);
+}
+
+void AVertiScapeGameMode::SaveCheckpoint()
+{
+	if(SaveSystem) SaveSystem->SaveCheckpoint();
 }
 
 void AVertiScapeGameMode::ResetLevel()
