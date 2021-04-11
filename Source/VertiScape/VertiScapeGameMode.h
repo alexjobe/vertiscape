@@ -41,6 +41,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameMode")
 	int32 NumCoinsToFind;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timers")
+	float BestGameTime;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Timers")
 	float CurrentGameTime;
 

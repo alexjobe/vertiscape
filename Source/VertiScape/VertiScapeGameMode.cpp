@@ -21,6 +21,7 @@ AVertiScapeGameMode::AVertiScapeGameMode()
 	NumCoinsToFind = 10;
 	TimeToRestart = 3.f;
 	CurrentGameTime = 0.f;
+	BestGameTime = 120.f;
 }
 
 void AVertiScapeGameMode::StartPlay()
@@ -40,6 +41,7 @@ void AVertiScapeGameMode::SaveCheckpoint()
 	{
 		SaveGameInstance->NumCollectedCoins = NumCollectedCoins;
 		SaveGameInstance->CurrentGameTime = CurrentGameTime;
+		SaveGameInstance->BestGameTime = BestGameTime;
 		SaveSystem->SaveGame(SaveGameInstance, true);
 	}
 }
@@ -51,6 +53,7 @@ void AVertiScapeGameMode::LoadCheckpoint(class UCPSaveGame* SaveGameInstance)
 	{
 		NumCollectedCoins = VertiScapeSaveGame->NumCollectedCoins;
 		CurrentGameTime = VertiScapeSaveGame->CurrentGameTime;
+		BestGameTime = VertiScapeSaveGame->BestGameTime;
 	}
 }
 
@@ -83,6 +86,7 @@ void AVertiScapeGameMode::GameTimeUpdate()
 void AVertiScapeGameMode::EndGame()
 {
 	GetWorldTimerManager().ClearTimer(TimerHandle_GameTime);
+	if (CurrentGameTime < BestGameTime) BestGameTime = CurrentGameTime;
 
 	if (!SaveSystem) return;
 
@@ -90,7 +94,8 @@ void AVertiScapeGameMode::EndGame()
 	if (SaveGameInstance)
 	{
 		SaveGameInstance->NumCollectedCoins = 0;
-		CurrentGameTime = 0.f;
+		SaveGameInstance->BestGameTime = BestGameTime;
+		SaveGameInstance->CurrentGameTime = 0.f;
 		SaveSystem->SaveGame(SaveGameInstance, false);
 	}
 

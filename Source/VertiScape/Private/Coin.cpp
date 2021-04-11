@@ -2,6 +2,9 @@
 
 
 #include "Coin.h"
+#include "Kismet/GameplayStatics.h"
+
+#include "VertiScape/VertiScapeGameMode.h"
 
 // Sets default values
 ACoin::ACoin()
@@ -14,6 +17,15 @@ ACoin::ACoin()
 void ACoin::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void ACoin::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	Super::OnTriggerOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+	
+	AVertiScapeGameMode* GameMode = Cast<AVertiScapeGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+
+	if(GameMode) GameMode->AddCoin();
 }
 
 //////////////////////////////////////////////////////////////////////////

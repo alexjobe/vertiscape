@@ -15,11 +15,14 @@ class VERTISCAPE_API UVertiScapeSaveGame : public UCPSaveGame
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(VisibleAnywhere, Category = Gameplay)
+	UPROPERTY(VisibleAnywhere, Category = "Gameplay")
 	uint32 NumCollectedCoins;
 
-	UPROPERTY(VisibleAnywhere, Category = Gameplay)
+	UPROPERTY(VisibleAnywhere, Category = "Gameplay")
 	float CurrentGameTime;
+
+	UPROPERTY(VisibleAnywhere, Category = "High Score")
+	float BestGameTime;
 
 	UVertiScapeSaveGame();
 };
