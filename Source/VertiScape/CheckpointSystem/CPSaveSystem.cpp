@@ -18,14 +18,14 @@ ACPSaveSystem::ACPSaveSystem()
 void ACPSaveSystem::Initialize(class ISaveSystemInterface* NewSaveInterface)
 {
 	this->SaveInterface = NewSaveInterface;
-	LoadSavedCheckpoint();
+	LoadSavedGame();
 }
 
-void ACPSaveSystem::SaveCheckpoint(class UCPSaveGame* SaveGameInstance)
+void ACPSaveSystem::SaveGame(class UCPSaveGame* SaveGameInstance, bool bSaveAllSavables)
 {
 	if (SaveGameInstance)
 	{
-		SaveAllSavables(SaveGameInstance);
+		if(bSaveAllSavables) SaveAllSavables(SaveGameInstance);
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGameInstance, SaveSlotName, 0);
 		UE_LOG(LogTemp, Warning, TEXT("Checkpoint Saved!"));
 	}
@@ -49,14 +49,14 @@ void ACPSaveSystem::SaveAllSavables(UCPSaveGame* SaveGameInstance)
 	}
 }
 
-void ACPSaveSystem::LoadSavedCheckpoint()
+void ACPSaveSystem::LoadSavedGame()
 {
 	FAsyncLoadGameFromSlotDelegate LoadedDelegate;
-	LoadedDelegate.BindUObject(this, &ACPSaveSystem::LoadCheckpointCallback);
+	LoadedDelegate.BindUObject(this, &ACPSaveSystem::LoadSaveCallback);
 	UGameplayStatics::AsyncLoadGameFromSlot(SaveSlotName, 0, LoadedDelegate);
 }
 
-void ACPSaveSystem::LoadCheckpointCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData)
+void ACPSaveSystem::LoadSaveCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData)
 {
 	if (UCPSaveGame* LoadedGame = Cast<UCPSaveGame>(LoadedGameData))
 	{
@@ -111,7 +111,7 @@ void ACPSaveSystem::InitializeCheckpoints()
 	}
 }
 
-void ACPSaveSystem::DeleteSavedCheckpoint()
+void ACPSaveSystem::DeleteSavedGame()
 {
 	UGameplayStatics::DeleteGameInSlot(SaveSlotName, 0);
 	UE_LOG(LogTemp, Warning, TEXT("Save Deleted!"));

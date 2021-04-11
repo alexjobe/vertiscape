@@ -18,5 +18,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Gameplay)
 	uint32 NumCollectedCoins;
 
+	UPROPERTY(VisibleAnywhere, Category = Gameplay)
+	float CurrentGameTime;
+
 	UVertiScapeSaveGame();
 };

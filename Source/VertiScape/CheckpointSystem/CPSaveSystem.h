@@ -15,11 +15,11 @@ public:
 	// Sets default values for this actor's properties
 	ACPSaveSystem();
 
-	void SaveCheckpoint(class UCPSaveGame* SaveGameInstance);
+	void SaveGame(class UCPSaveGame* SaveGameInstance, bool bSaveAllSavables);
 
-	void LoadSavedCheckpoint();
+	void LoadSavedGame();
 
-	void DeleteSavedCheckpoint();
+	void DeleteSavedGame();
 
 	void Initialize(class ISaveSystemInterface* NewSaveInterface);
 
@@ -34,7 +34,7 @@ protected:
 	void LoadAllSavables(UCPSaveGame* LoadedGame);
 
 	UFUNCTION()
-	void LoadCheckpointCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData);
+	void LoadSaveCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData);
 
 	// Finds all checkpoints and initializes them - called after saved data is loaded
 	void InitializeCheckpoints();

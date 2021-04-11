@@ -26,16 +26,39 @@ public:
 	virtual void ResetLevel() override;
 
 	UFUNCTION(BlueprintCallable)
-	void DeleteSavedCheckpoint();
+	void DeleteSavedGame();
 
 	UFUNCTION(BlueprintCallable)
 	void AddCoin();
 
+	void StartGameTimer();
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE int32 GetNumCollectedCoins() const { return NumCollectedCoins; }
+
+protected:
+	// The number of coins that must be collected
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GameMode")
+	int32 NumCoinsToFind;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Timers")
+	float CurrentGameTime;
+
+	FTimerHandle TimerHandle_GameTime;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Timers")
+	float TimeToRestart;
+
+	FTimerHandle TimerHandle_TimeToRestart;
+
+	void EndGame();
+
+	UFUNCTION()
+	void GameTimeUpdate();
 
 private:
 	class ACPSaveSystem* SaveSystem;
 
+	// How many coins have been collected so far
 	int32 NumCollectedCoins;
 };
