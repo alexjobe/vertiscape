@@ -47,17 +47,10 @@ public:
 
 	virtual void LoadData(FSavableData DataToLoad) override;
 
-	virtual FString GetLastCheckpointName() override;
-
-	virtual void SetLastCheckpointName(FString NewCheckpointName) override;
-
 protected:
 	// Character is dead
 	UPROPERTY(BlueprintReadOnly, Category = "Gameplay")
 	bool bIsDead;
-
-	// The name of the last checkpoint activated
-	FString LastCheckpointName;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

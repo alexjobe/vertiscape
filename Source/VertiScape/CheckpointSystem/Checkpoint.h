@@ -4,25 +4,47 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
+#include "SavableInterface.h"
+
 #include "Checkpoint.generated.h"
 
+UENUM()
+enum ECheckpointStatus
+{
+	Active		    UMETA(DisplayName = "Active"),
+	Inactive        UMETA(DisplayName = "Inactive"),
+	Uninitialized   UMETA(DisplayName = "Uninitialized"),
+};
 
 UCLASS()
-class VERTISCAPE_API ACheckpoint : public AActor
+class VERTISCAPE_API ACheckpoint : public AActor, public ISavableInterface
 {
 	GENERATED_BODY()
 	
-public:	
+public:
 	// Sets default values for this actor's properties
 	ACheckpoint();
 
 	void SetSaveInterface(class ISaveSystemInterface* NewSaveInterface);
+
+	void EnableCheckpoint();
+
+	void DisableCheckpoint();
+
+	FORCEINLINE ECheckpointStatus GetCheckpointStatus() const { return CheckpointStatus; }
+
+	virtual FSavableData SaveData() override;
+
+	virtual void LoadData(FSavableData DataToLoad) override;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
+	ECheckpointStatus CheckpointStatus;
+
 	class ISaveSystemInterface* SaveInterface;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")

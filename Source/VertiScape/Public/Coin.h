@@ -22,12 +22,8 @@ public:
 	// SavableInterface
 	virtual FSavableData SaveData() override;
 	virtual void LoadData(FSavableData DataToLoad) override;
-	virtual FString GetLastCheckpointName() override;
-	virtual void SetLastCheckpointName(FString NewCheckpointName) override;
 
 protected:
-	FString LastCheckpointName;
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 };

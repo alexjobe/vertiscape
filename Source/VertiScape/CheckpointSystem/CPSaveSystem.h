@@ -21,17 +21,11 @@ public:
 
 	void DeleteSavedCheckpoint();
 
-	void SetSaveInterface(class ISaveSystemInterface* NewSaveInterface);
+	void Initialize(class ISaveSystemInterface* NewSaveInterface);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Save Data")
 	FString SaveSlotName;
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	// Finds all checkpoints and initializes them
-	void InitializeCheckpoints();
 
 	// Finds all actors that implement SavableInterface, and calls their SaveData function
 	void SaveAllSavables(class UCPSaveGame* SaveGameInstance);
@@ -42,8 +36,8 @@ protected:
 	UFUNCTION()
 	void LoadCheckpointCallback(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData);
 
-	// Enables collision for all checkpoints - called after saved data is loaded
-	void EnableCheckpoints();
+	// Finds all checkpoints and initializes them - called after saved data is loaded
+	void InitializeCheckpoints();
 
 private:
 	class ISaveSystemInterface* SaveInterface;

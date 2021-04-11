@@ -15,40 +15,19 @@ ACPSaveSystem::ACPSaveSystem()
 	SaveSlotName = "TestSave";
 }
 
-// Called when the game starts or when spawned
-void ACPSaveSystem::BeginPlay()
-{
-	Super::BeginPlay();
-	LoadSavedCheckpoint();
-}
-
-void ACPSaveSystem::SetSaveInterface(class ISaveSystemInterface* NewSaveInterface)
+void ACPSaveSystem::Initialize(class ISaveSystemInterface* NewSaveInterface)
 {
 	this->SaveInterface = NewSaveInterface;
-	InitializeCheckpoints();
-}
-
-void ACPSaveSystem::InitializeCheckpoints()
-{
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACheckpoint::StaticClass(), FoundActors);
-
-	for (AActor* FoundActor : FoundActors)
-	{
-		ACheckpoint* Checkpoint = Cast<ACheckpoint>(FoundActor);
-		if (Checkpoint) Checkpoint->SetSaveInterface(SaveInterface);
-	}
+	LoadSavedCheckpoint();
 }
 
 void ACPSaveSystem::SaveCheckpoint(class UCPSaveGame* SaveGameInstance)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Checkpoint Saved!"));
-
 	if (SaveGameInstance)
 	{
 		SaveAllSavables(SaveGameInstance);
-
 		UGameplayStatics::AsyncSaveGameToSlot(SaveGameInstance, SaveSlotName, 0);
+		UE_LOG(LogTemp, Warning, TEXT("Checkpoint Saved!"));
 	}
 }
 
@@ -85,7 +64,7 @@ void ACPSaveSystem::LoadCheckpointCallback(const FString& SlotName, const int32 
 		SaveInterface->LoadCheckpoint(LoadedGame);
 	}
 
-	EnableCheckpoints();
+	InitializeCheckpoints();
 }
 
 void ACPSaveSystem::LoadAllSavables(UCPSaveGame* LoadedGame)
@@ -108,14 +87,27 @@ void ACPSaveSystem::LoadAllSavables(UCPSaveGame* LoadedGame)
 	}
 }
 
-void ACPSaveSystem::EnableCheckpoints()
+void ACPSaveSystem::InitializeCheckpoints()
 {
 	TArray<AActor*> AllCheckpoints;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), AllCheckpoints);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACheckpoint::StaticClass(), AllCheckpoints);
 
-	for (AActor* FoundCheckpoint : AllCheckpoints)
+	for (AActor* FoundActor : AllCheckpoints)
 	{
-		FoundCheckpoint->SetActorEnableCollision(true);
+		ACheckpoint* Checkpoint = Cast<ACheckpoint>(FoundActor);
+		if (Checkpoint)
+		{
+			if(SaveInterface) Checkpoint->SetSaveInterface(SaveInterface);
+
+			if (Checkpoint->GetCheckpointStatus() == ECheckpointStatus::Inactive)
+			{
+				Checkpoint->DisableCheckpoint();
+			}
+			else
+			{
+				Checkpoint->EnableCheckpoint();
+			}
+		}
 	}
 }
 

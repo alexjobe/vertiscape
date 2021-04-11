@@ -63,21 +63,10 @@ AMeleeCharacter::AMeleeCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Save System
 
-FString AMeleeCharacter::GetLastCheckpointName()
-{
-	return LastCheckpointName;
-}
-
-void AMeleeCharacter::SetLastCheckpointName(FString NewCheckpointName)
-{
-	LastCheckpointName = NewCheckpointName;
-}
-
 FSavableData AMeleeCharacter::SaveData()
 {
 	FSavableData SavableData;
 	SavableData.Transform = GetActorTransform();
-	SavableData.LastCheckpointName = LastCheckpointName;
 	SavableData.bIsActive = !bIsDead;
 	return SavableData;
 }
@@ -85,7 +74,6 @@ FSavableData AMeleeCharacter::SaveData()
 void AMeleeCharacter::LoadData(FSavableData DataToLoad)
 {
 	SetActorTransform(DataToLoad.Transform);
-	LastCheckpointName = DataToLoad.LastCheckpointName;
 	if (!DataToLoad.bIsActive) DisableCharacter();
 }
 

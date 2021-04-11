@@ -31,13 +31,3 @@ void ACoin::LoadData(FSavableData DataToLoad)
 	if (!DataToLoad.bIsActive) DisablePickup();
 }
 
-FString ACoin::GetLastCheckpointName()
-{
-	return LastCheckpointName;
-}
-
-void ACoin::SetLastCheckpointName(FString NewCheckpointName)
-{
-	LastCheckpointName = NewCheckpointName;
-}
-
