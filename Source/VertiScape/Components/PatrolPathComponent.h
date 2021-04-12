@@ -32,5 +32,8 @@ protected:
 	UPROPERTY(EditInstanceOnly)
 	class APatrolPath* PatrolPath;
 
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
 		
 };

@@ -25,4 +25,20 @@ public:
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
+	// Initialize the variables we need
+	bool InitVariables(UBehaviorTreeComponent& OwnerComp);
+
+	// Called when the pawn is moving forwards along the path
+	void IncrementPathIndex();
+
+	// Called when the pawn is moving backwards along the path
+	void DecrementPathIndex();
+
+private:
+	class UBlackboardComponent* Blackboard;
+	bool bIsLooping;
+	bool bIsMovingForward;
+	int32 PathIndex;
+	int32 NumPathPoints;
 };

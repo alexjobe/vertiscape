@@ -16,6 +16,12 @@ UPatrolPathComponent::UPatrolPathComponent()
 	// ...
 }
 
+void UPatrolPathComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if(!PatrolPath) UE_LOG(LogTemp, Warning, TEXT("%s does not have a PatrolPath!"), *GetOwner()->GetName());
+}
+
 bool UPatrolPathComponent::GetIsLooping()
 {
 	if (PatrolPath) return PatrolPath->bIsLooping;

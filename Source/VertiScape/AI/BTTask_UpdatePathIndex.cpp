@@ -17,54 +17,70 @@ EBTNodeResult::Type UBTTask_UpdatePathIndex::ExecuteTask(UBehaviorTreeComponent&
 {
 	Super::ExecuteTask(OwnerComp, NodeMemory);
 
-	APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn();
-	if(!Pawn) return EBTNodeResult::Failed;
-
-	UPatrolPathComponent* PatrolComp = Cast<UPatrolPathComponent>(Pawn->GetComponentByClass(UPatrolPathComponent::StaticClass()));
-	if(!PatrolComp) return EBTNodeResult::Failed;
-
-	UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent();
-	if (!Blackboard) return EBTNodeResult::Failed;
-
-	bool bIsLooping = PatrolComp->GetIsLooping();
-	bool bIsMovingForward;
-	int32 PathIndex;
-
-	bIsMovingForward = Blackboard->GetValueAsBool(IsMovingForwardKey.SelectedKeyName);
-	PathIndex = Blackboard->GetValueAsInt(PathIndexKey.SelectedKeyName);
+	bool InitSuccess = InitVariables(OwnerComp);
+	if(!InitSuccess) return EBTNodeResult::Failed;
 
 	if (bIsMovingForward || bIsLooping)
 	{
-		int32 NewPathIndex = PathIndex + 1;
-		if (NewPathIndex < PatrolComp->GetNumPathPoints())
-		{
-			Blackboard->SetValueAsInt(PathIndexKey.SelectedKeyName, NewPathIndex);
-		}
-		else if (bIsLooping)
-		{
-			Blackboard->SetValueAsInt(PathIndexKey.SelectedKeyName, 0);
-		}
-		else
-		{
-			Blackboard->SetValueAsBool(IsMovingForwardKey.SelectedKeyName, false);
-		}
-
+		IncrementPathIndex();
 		return EBTNodeResult::Succeeded;
 	}
 	else
 	{
-		int32 NewPathIndex = PathIndex - 1;
-		if (NewPathIndex >= 0)
-		{
-			Blackboard->SetValueAsInt(PathIndexKey.SelectedKeyName, NewPathIndex);
-		}
-		else
-		{
-			Blackboard->SetValueAsBool(IsMovingForwardKey.SelectedKeyName, true);
-		}
-
+		DecrementPathIndex();
 		return EBTNodeResult::Succeeded;
 	}
 
 	return EBTNodeResult::Failed;
+}
+
+bool UBTTask_UpdatePathIndex::InitVariables(UBehaviorTreeComponent& OwnerComp)
+{
+	APawn* Pawn = OwnerComp.GetAIOwner()->GetPawn();
+	if (!Pawn) return false;
+
+	UPatrolPathComponent* PatrolComp = Cast<UPatrolPathComponent>(Pawn->GetComponentByClass(UPatrolPathComponent::StaticClass()));
+	if (!PatrolComp) return false;
+
+	Blackboard = OwnerComp.GetBlackboardComponent();
+	if (!Blackboard) return false;
+
+	NumPathPoints = PatrolComp->GetNumPathPoints();
+	if(NumPathPoints <= 0) return false;
+
+	bIsLooping = PatrolComp->GetIsLooping();
+	bIsMovingForward = Blackboard->GetValueAsBool(IsMovingForwardKey.SelectedKeyName);
+	PathIndex = Blackboard->GetValueAsInt(PathIndexKey.SelectedKeyName);
+
+	return true;
+}
+
+void UBTTask_UpdatePathIndex::IncrementPathIndex()
+{
+	int32 NewPathIndex = PathIndex + 1;
+	if (NewPathIndex < NumPathPoints)
+	{
+		Blackboard->SetValueAsInt(PathIndexKey.SelectedKeyName, NewPathIndex);
+	}
+	else if (bIsLooping)
+	{
+		Blackboard->SetValueAsInt(PathIndexKey.SelectedKeyName, 0);
+	}
+	else
+	{
+		Blackboard->SetValueAsBool(IsMovingForwardKey.SelectedKeyName, false);
+	}
+}
+
+void UBTTask_UpdatePathIndex::DecrementPathIndex()
+{
+	int32 NewPathIndex = PathIndex - 1;
+	if (NewPathIndex >= 0)
+	{
+		Blackboard->SetValueAsInt(PathIndexKey.SelectedKeyName, NewPathIndex);
+	}
+	else
+	{
+		Blackboard->SetValueAsBool(IsMovingForwardKey.SelectedKeyName, true);
+	}
 }
