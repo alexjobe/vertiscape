@@ -61,6 +61,7 @@ protected:
 	virtual void DisableCharacter();
 
 	/** Calls BeginAttack on MeleeComponent */
+	UFUNCTION(BlueprintCallable)
 	void BeginMeleeAttack();
 
 	/** Called for forwards/backward input */

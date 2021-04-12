@@ -50,6 +50,5 @@ void UMeleeComponent::CreateHitSphere()
 
 void UMeleeComponent::ResetAttack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Attack reset!"));
 	bIsAttacking = false;
 }

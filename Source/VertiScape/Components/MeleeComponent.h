@@ -17,7 +17,6 @@ public:
 	// Sets default values for this component's properties
 	UMeleeComponent();
 
-	UFUNCTION(BlueprintCallable)
 	void BeginAttack();
 
 protected:

@@ -127,7 +127,7 @@ void AMeleeCharacter::DisableCharacter()
 
 void AMeleeCharacter::BeginMeleeAttack()
 {
-	if(MeleeComp) MeleeComp->BeginAttack();
+	if(!bIsDead && MeleeComp) MeleeComp->BeginAttack();
 }
 
 void AMeleeCharacter::TurnAtRate(float Rate)
