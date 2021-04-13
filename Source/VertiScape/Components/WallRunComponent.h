@@ -62,12 +62,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WallRunning, meta = (ToolTip = "How fast should the character lean away from the wall while wall running?"))
 	float WallRunLeanSpeed;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WallRunning, meta = (ToolTip = "How long should the character keep wall running once wall run keys are no longer held down?"))
+	float TimeToFallOff;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = WallRunning, meta = (ToolTip = "How many jumps should the character have left after falling off a wall?"))
+	int32 JumpsLeftAfterFalling;
+
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnWallRunStatusChangedSignature OnWallRunStatusChanged;
 
 private:
 	UPROPERTY()
-	class ACharacter* OwningCharacter;
+	class ACharacter* MyOwner;
 
 	UPROPERTY()
 	class UCharacterMovementComponent* MovementComponent;
@@ -86,6 +92,8 @@ private:
 	float DefaultAirControl;
 
 	float CurrentCharacterRoll;
+
+	FTimerHandle TimerHandle_TimeToFallOff;
 
 	// If we can jump, decrements JumpsLeft and returns true
 	bool UseAJump();
@@ -129,6 +137,11 @@ private:
 	void BeginWallRun();
 
 	void WallRunUpdate();
+
+	void FallOffIfKeysAreNotDown();
+
+	UFUNCTION()
+	void FallOffCallback();
 
 	void EndWallRun(EWallRunEndReason Reason);
 

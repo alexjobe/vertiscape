@@ -24,6 +24,8 @@ UWallRunComponent::UWallRunComponent()
 
 	WallRunLean = 20.f;
 	WallRunLeanSpeed = 10.f;
+	TimeToFallOff = 0.5f;
+	JumpsLeftAfterFalling = 1;
 }
 
 
@@ -34,10 +36,10 @@ void UWallRunComponent::BeginPlay()
 
 	JumpsLeft = MaxJumps;
 
-	OwningCharacter = Cast<ACharacter>(GetOwner());
-	check(OwningCharacter);
+	MyOwner = Cast<ACharacter>(GetOwner());
+	check(MyOwner);
 
-	MovementComponent = OwningCharacter->GetCharacterMovement();
+	MovementComponent = MyOwner->GetCharacterMovement();
 	check(MovementComponent);
 
 	// Needed so we can "stick" character to wall
@@ -47,9 +49,9 @@ void UWallRunComponent::BeginPlay()
 	DefaultGravityScale = MovementComponent->GravityScale;
 	DefaultAirControl = MovementComponent->AirControl;
 
-	OwningCharacter->LandedDelegate.AddDynamic(this, &UWallRunComponent::OnLanded);
+	MyOwner->LandedDelegate.AddDynamic(this, &UWallRunComponent::OnLanded);
 
-	OwningCharacter->OnActorHit.AddDynamic(this, &UWallRunComponent::OnCharacterHit);
+	MyOwner->OnActorHit.AddDynamic(this, &UWallRunComponent::OnCharacterHit);
 }
 
 
@@ -68,29 +70,23 @@ void UWallRunComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 void UWallRunComponent::Jump()
 {
+	check(MyOwner)
 	if (UseAJump())
 	{
 		FVector LaunchVelocity = CalculateLaunchVelocity();
 		// Override Z component of character's velocity
-		OwningCharacter->LaunchCharacter(LaunchVelocity, false, true);
+		MyOwner->LaunchCharacter(LaunchVelocity, false, true);
 		if (bIsWallRunning) EndWallRun(EWallRunEndReason::JumpedOffWall);
 	}
 }
 
 bool UWallRunComponent::UseAJump()
 {
-	if (bIsWallRunning)
+
+	if (JumpsLeft > 0)
 	{
-		// If we are wall running, jumping does not use up a jump
+		JumpsLeft--;
 		return true;
-	}
-	else
-	{
-		if (JumpsLeft > 0)
-		{
-			JumpsLeft--;
-			return true;
-		}
 	}
 
 	return false;
@@ -114,7 +110,7 @@ void UWallRunComponent::OnLanded(const FHitResult& Hit)
 
 FVector UWallRunComponent::CalculateLaunchVelocity()
 {
-	check(OwningCharacter)
+	check(MyOwner)
 	check(MovementComponent)
 
 	FVector LaunchVelocity;
@@ -135,8 +131,8 @@ FVector UWallRunComponent::CalculateLaunchVelocity()
 	else if (MovementComponent->IsFalling())
 	{
 		// If in the air, launch in direction of player input
-		LaunchVelocity = OwningCharacter->GetActorRightVector() * OwningCharacter->GetInputAxisValue(InputAxisRight)
-			+ OwningCharacter->GetActorForwardVector() * OwningCharacter->GetInputAxisValue(InputAxisForward);
+		LaunchVelocity = MyOwner->GetActorRightVector() * MyOwner->GetInputAxisValue(InputAxisRight)
+			+ MyOwner->GetActorForwardVector() * MyOwner->GetInputAxisValue(InputAxisForward);
 	}
 
 	// No matter what, we want to go up
@@ -199,8 +195,8 @@ void UWallRunComponent::OnCharacterHit(AActor* SelfActor, AActor* OtherActor, FV
 
 EWallSide UWallRunComponent::FindWallSide(FVector SurfaceNormal)
 {
-	check(OwningCharacter)
-	float DotProductResult = FVector2D::DotProduct(FVector2D(SurfaceNormal), FVector2D(OwningCharacter->GetActorRightVector()));
+	check(MyOwner)
+	float DotProductResult = FVector2D::DotProduct(FVector2D(SurfaceNormal), FVector2D(MyOwner->GetActorRightVector()));
 
 	// If the character's right vector is in the same direction as the wall's surface normal, the wall is on the left.
 	if (DotProductResult > 0) return EWallSide::Left;
@@ -226,16 +222,17 @@ FVector UWallRunComponent::FindRunDirection(FVector SurfaceNormal, EWallSide Sid
 
 bool UWallRunComponent::WallRunKeysAreDown()
 {
+	check(MyOwner)
 	// Must be running forward to wall run
-	if (OwningCharacter->GetInputAxisValue(InputAxisForward) < 0.1) return false;
+	if (MyOwner->GetInputAxisValue(InputAxisForward) < 0.1) return false;
 
 	switch (WallSide)
 	{
 	case EWallSide::Left:
-		return OwningCharacter->GetInputAxisValue(InputAxisRight) < -0.1f;
+		return MyOwner->GetInputAxisValue(InputAxisRight) < -0.1f;
 		break;
 	case EWallSide::Right:
-		return OwningCharacter->GetInputAxisValue(InputAxisRight) > 0.1f;
+		return MyOwner->GetInputAxisValue(InputAxisRight) > 0.1f;
 		break;
 	}
 
@@ -251,13 +248,15 @@ void UWallRunComponent::BeginWallRun()
 	MovementComponent->bOrientRotationToMovement = false;
 	MovementComponent->GravityScale = WallRunGravityScale;
 	MovementComponent->AirControl = WallRunAirControl;
+	// Reset jumps
+	SetJumps(MaxJumps);
 	SetIsWallRunning(true);
 }
 
 void UWallRunComponent::WallRunUpdate()
 {
 	// If required keys are not held down, fall off wall
-	if (!WallRunKeysAreDown()) EndWallRun(EWallRunEndReason::FellOffWall);
+	FallOffIfKeysAreNotDown();
 
 	FHitResult HitResult;
 	bool bHitWall = LineTraceToWall(HitResult);
@@ -273,13 +272,29 @@ void UWallRunComponent::WallRunUpdate()
 	MovementComponent->Velocity.Y = MovementComponent->GetMaxSpeed() * WallRunDirection.Y;
 }
 
+void UWallRunComponent::FallOffIfKeysAreNotDown()
+{
+	check(MyOwner)
+	// If required keys are not held down, we start a timer to determine if we should fall off. If the keys are still 
+	// not held down when the timer completes, we fall off the wall. This gives the player time to correct the mistake
+	if (!WallRunKeysAreDown() && !MyOwner->GetWorldTimerManager().IsTimerActive(TimerHandle_TimeToFallOff))
+	{
+		MyOwner->GetWorldTimerManager().SetTimer(TimerHandle_TimeToFallOff, this, &UWallRunComponent::FallOffCallback, TimeToFallOff);
+	}
+}
+
+void UWallRunComponent::FallOffCallback()
+{
+	if(!WallRunKeysAreDown()) EndWallRun(EWallRunEndReason::FellOffWall);
+}
+
 void UWallRunComponent::CharacterRotationUpdate(float DeltaTime)
 {
-	check(OwningCharacter)
+	check(MyOwner)
 	// If we aren't wall running and the character roll is already zero, we don't need to do anything
 	if (!bIsWallRunning && CurrentCharacterRoll == 0.f) return;
 
-	FRotator CurrentRotation = OwningCharacter->GetActorRotation();
+	FRotator CurrentRotation = MyOwner->GetActorRotation();
 
 	if (bIsWallRunning)
 	{
@@ -295,7 +310,7 @@ void UWallRunComponent::CharacterRotationUpdate(float DeltaTime)
 	// Smoothly interpolate towards target character roll
 	CurrentRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, WallRunLeanSpeed);
 
-	OwningCharacter->SetActorRotation(CurrentRotation);
+	MyOwner->SetActorRotation(CurrentRotation);
 
 	// Save current character roll for early return
 	CurrentCharacterRoll = CurrentRotation.Roll;
@@ -303,9 +318,10 @@ void UWallRunComponent::CharacterRotationUpdate(float DeltaTime)
 
 void UWallRunComponent::EndWallRun(EWallRunEndReason Reason)
 {
+	check(MyOwner)
 	check(MovementComponent)
-	if (Reason == FellOffWall) UE_LOG(LogTemp, Warning, TEXT("Fell off wall"));
-	Reason == EWallRunEndReason::FellOffWall ? SetJumps(1) : SetJumps(MaxJumps - 1);
+	MyOwner->GetWorldTimerManager().ClearTimer(TimerHandle_TimeToFallOff);
+	if(Reason == EWallRunEndReason::FellOffWall) SetJumps(JumpsLeftAfterFalling);
 	MovementComponent->SetPlaneConstraintNormal({ 0.f, 0.f, 0.f });
 	MovementComponent->bOrientRotationToMovement = true;
 	MovementComponent->GravityScale = DefaultGravityScale;
@@ -315,7 +331,7 @@ void UWallRunComponent::EndWallRun(EWallRunEndReason Reason)
 
 bool UWallRunComponent::LineTraceToWall(FHitResult& HitResult)
 {
-	check(OwningCharacter)
+	check(MyOwner)
 	FVector LineTraceEnd;
 
 	switch (WallSide)
@@ -330,12 +346,12 @@ bool UWallRunComponent::LineTraceToWall(FHitResult& HitResult)
 
 	LineTraceEnd *= 200.f;
 
-	LineTraceEnd += OwningCharacter->GetActorLocation();
+	LineTraceEnd += MyOwner->GetActorLocation();
 
 	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(OwningCharacter);
+	CollisionParams.AddIgnoredActor(MyOwner);
 
-	return GetWorld()->LineTraceSingleByChannel(HitResult, OwningCharacter->GetActorLocation(), LineTraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
+	return GetWorld()->LineTraceSingleByChannel(HitResult, MyOwner->GetActorLocation(), LineTraceEnd, ECollisionChannel::ECC_Visibility, CollisionParams);
 }
 
 float UWallRunComponent::GetTargetCharacterRoll()
