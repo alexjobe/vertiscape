@@ -2,6 +2,9 @@
 
 
 #include "HealthComponent.h"
+#include "GameFramework/Character.h"
+
+#include "KnockBackDamageType.h"
 
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
@@ -19,6 +22,8 @@ UHealthComponent::UHealthComponent()
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	bIsDead = false;
+	CurrentHealth = DefaultHealth;
 
 	MyOwner = GetOwner();
 	check(MyOwner)
@@ -33,6 +38,28 @@ void UHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, c
 {
 	if (bIsDead || Damage <= 0.f) return;
 	SetCurrentHealth(CurrentHealth - Damage);
+	if (CurrentHealth > 0)
+	{
+		ApplyKnockBack(DamageType, DamageCauser);
+	}
+}
+
+void UHealthComponent::ApplyKnockBack(const UDamageType* DamageType, AActor* DamageCauser)
+{
+	const UKnockBackDamageType* KnockBackDamageType = Cast<UKnockBackDamageType>(DamageType);
+	if (KnockBackDamageType)
+	{
+		FVector LaunchVelocity = MyOwner->GetActorLocation() - DamageCauser->GetActorLocation();
+		LaunchVelocity = { LaunchVelocity.X, LaunchVelocity.Y, 0.f };
+		LaunchVelocity.Normalize();
+		LaunchVelocity *= KnockBackDamageType->KnockBackForce;
+
+		ACharacter* MyOwningCharacter = Cast<ACharacter>(MyOwner);
+		if (MyOwningCharacter)
+		{
+			MyOwningCharacter->LaunchCharacter(LaunchVelocity, true, false);
+		}
+	}
 }
 
 void UHealthComponent::SetCurrentHealth(float NewHealth)
@@ -41,6 +68,7 @@ void UHealthComponent::SetCurrentHealth(float NewHealth)
 	{
 		float OldHealth = CurrentHealth;
 		CurrentHealth = FMath::Clamp(NewHealth, 0.f, DefaultHealth);
+		if(CurrentHealth <= 0) bIsDead = true;
 		OnHealthUpdate(OldHealth);
 	}
 }

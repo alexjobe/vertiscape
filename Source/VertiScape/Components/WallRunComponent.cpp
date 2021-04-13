@@ -18,6 +18,7 @@ UWallRunComponent::UWallRunComponent()
 	InputAxisForward = "MoveForward";
 
 	MaxJumps = 2;
+	bIsJumping = false;
 
 	WallRunGravityScale = 0.f;
 	WallRunAirControl = 1.f;
@@ -73,6 +74,7 @@ void UWallRunComponent::Jump()
 	check(MyOwner)
 	if (UseAJump())
 	{
+		bIsJumping = true;
 		FVector LaunchVelocity = CalculateLaunchVelocity();
 		// Override Z component of character's velocity
 		MyOwner->LaunchCharacter(LaunchVelocity, false, true);
@@ -106,6 +108,7 @@ void UWallRunComponent::SetIsWallRunning(bool NewIsWallRunning)
 void UWallRunComponent::OnLanded(const FHitResult& Hit)
 {
 	SetJumps(MaxJumps);
+	bIsJumping = false;
 }
 
 FVector UWallRunComponent::CalculateLaunchVelocity()
@@ -157,7 +160,7 @@ void UWallRunComponent::SetHorizontalVelocity(FVector2D NewVelocity)
 void UWallRunComponent::ClampHorizontalVelocity()
 {
 	check(MovementComponent)
-	if (!MovementComponent->IsFalling()) return; // Only continue if character is in the air
+	if (!bIsJumping) return; // Only continue if character is jumping
 
 	FVector2D HorizontalVelocity = GetHorizontalVelocity();
 	float SpeedRatio = HorizontalVelocity.Size() / MovementComponent->GetMaxSpeed();

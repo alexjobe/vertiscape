@@ -43,6 +43,8 @@ protected:
 	UFUNCTION()
 	void HandleTakeAnyDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, AController* InstigatedBy, AActor* DamageCauser);
 
+	void ApplyKnockBack(const UDamageType* DamageType, AActor* DamageCauser);
+
 	// Response to health being updated
 	void OnHealthUpdate(float OldHealth);
 

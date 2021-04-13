@@ -38,9 +38,6 @@ public:
 	void Jump();
 
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input)
 	FName InputAxisRight;
 
@@ -71,6 +68,9 @@ protected:
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnWallRunStatusChangedSignature OnWallRunStatusChanged;
 
+	// Called when the game starts
+	virtual void BeginPlay() override;
+
 private:
 	UPROPERTY()
 	class ACharacter* MyOwner;
@@ -82,6 +82,8 @@ private:
 
 	// How many jumps we currently have
 	int JumpsLeft;
+
+	bool bIsJumping;
 
 	FVector WallRunDirection;
 
