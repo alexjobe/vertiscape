@@ -44,7 +44,7 @@ void UMeleeComponent::BeginAttack()
 
 void UMeleeComponent::CreateHitSphere()
 {
-	//DrawDebugSphere(GetWorld(), GetComponentLocation(), HitSphereRadius, 12, FColor::Red, false, 2.f);
+	if(bShowDebugSphere) DrawDebugSphere(GetWorld(), GetComponentLocation(), HitSphereRadius, 12, FColor::Red, false, 2.f);
 	UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetComponentLocation(), HitSphereRadius, DamageType, ActorsToIgnore, MyOwner, MyOwner->GetInstigatorController(), true);
 }
 

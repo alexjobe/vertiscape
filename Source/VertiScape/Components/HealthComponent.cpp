@@ -15,6 +15,7 @@ UHealthComponent::UHealthComponent()
 	//Initialize the player's Health
 	DefaultHealth = 100.f;
 	CurrentHealth = DefaultHealth;
+	KnockBackResistance = 0.f;
 	bIsDead = false;
 }
 
@@ -38,6 +39,7 @@ void UHealthComponent::HandleTakeAnyDamage(AActor* DamagedActor, float Damage, c
 {
 	if (bIsDead || Damage <= 0.f) return;
 	SetCurrentHealth(CurrentHealth - Damage);
+
 	if (CurrentHealth > 0)
 	{
 		ApplyKnockBack(DamageType, DamageCauser);
@@ -52,7 +54,9 @@ void UHealthComponent::ApplyKnockBack(const UDamageType* DamageType, AActor* Dam
 		FVector LaunchVelocity = MyOwner->GetActorLocation() - DamageCauser->GetActorLocation();
 		LaunchVelocity = { LaunchVelocity.X, LaunchVelocity.Y, 0.f };
 		LaunchVelocity.Normalize();
-		LaunchVelocity *= KnockBackDamageType->KnockBackForce;
+		KnockBackResistance = FMath::Clamp(KnockBackResistance, 0.f, 1.f);
+		float KnockBackForce = KnockBackDamageType->KnockBackForce * (1 - KnockBackResistance);
+		LaunchVelocity *= KnockBackForce;
 
 		ACharacter* MyOwningCharacter = Cast<ACharacter>(MyOwner);
 		if (MyOwningCharacter)

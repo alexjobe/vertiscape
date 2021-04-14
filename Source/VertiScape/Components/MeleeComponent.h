@@ -37,6 +37,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "What to Hit")
 	float HitSphereRadius;
 
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	bool bShowDebugSphere;
+
 	UPROPERTY(EditDefaultsOnly, Category = "What to Hit")
 	TArray <TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 

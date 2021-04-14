@@ -36,6 +36,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 	float DefaultHealth;
 
+	// The owner's default health. This is the value their health starts at when spawned.
+	UPROPERTY(EditDefaultsOnly, Category = "Resistance")
+	float KnockBackResistance;
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 

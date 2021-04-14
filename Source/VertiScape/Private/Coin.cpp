@@ -23,8 +23,8 @@ void ACoin::OnTriggerOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 {
 	Super::OnTriggerOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	
+	if (!Cast<APawn>(OtherActor)->IsPlayerControlled()) return;
 	AVertiScapeGameMode* GameMode = Cast<AVertiScapeGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-
 	if(GameMode) GameMode->AddCoin();
 }
 
