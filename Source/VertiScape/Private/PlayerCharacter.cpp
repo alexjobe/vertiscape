@@ -25,8 +25,7 @@ void APlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 
 void APlayerCharacter::WallRunJump()
 {
-	check(WallRunComp)
-	WallRunComp->Jump();
+	if(WallRunComp) WallRunComp->Jump();
 }
 
 void APlayerCharacter::DisableCharacter()

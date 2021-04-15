@@ -71,7 +71,7 @@ void UWallRunComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 void UWallRunComponent::Jump()
 {
-	check(MyOwner)
+	if(!MyOwner) return;
 	if (UseAJump())
 	{
 		bIsJumping = true;
@@ -113,10 +113,9 @@ void UWallRunComponent::OnLanded(const FHitResult& Hit)
 
 FVector UWallRunComponent::CalculateLaunchVelocity()
 {
-	check(MyOwner)
-	check(MovementComponent)
+	if(!MyOwner || !MovementComponent) return FVector::ZeroVector;
 
-	FVector LaunchVelocity;
+	FVector LaunchVelocity = FVector::ZeroVector;
 
 	if (bIsWallRunning)
 	{
@@ -146,21 +145,22 @@ FVector UWallRunComponent::CalculateLaunchVelocity()
 }
 FVector2D UWallRunComponent::GetHorizontalVelocity()
 {
-	check(MovementComponent)
+	if (!MovementComponent) return FVector2D::ZeroVector;
 	return FVector2D(MovementComponent->Velocity);
+
 }
 
 void UWallRunComponent::SetHorizontalVelocity(FVector2D NewVelocity)
 {
-	check(MovementComponent)
+	if(!MovementComponent) return;
 	MovementComponent->Velocity.X = NewVelocity.X;
 	MovementComponent->Velocity.Y = NewVelocity.Y;
 }
 
 void UWallRunComponent::ClampHorizontalVelocity()
 {
-	check(MovementComponent)
 	if (!bIsJumping) return; // Only continue if character is jumping
+	if(!MovementComponent) return;
 
 	FVector2D HorizontalVelocity = GetHorizontalVelocity();
 	float SpeedRatio = HorizontalVelocity.Size() / MovementComponent->GetMaxSpeed();
@@ -173,7 +173,7 @@ void UWallRunComponent::ClampHorizontalVelocity()
 
 bool UWallRunComponent::CanWallRunOnSurface(FVector SurfaceNormal)
 {
-	check(MovementComponent)
+	if(!MovementComponent) return false;
 	// Cannot wall run on ceilings or surfaces that we can walk on
 	return SurfaceNormal.Z > -0.05f
 	&& SurfaceNormal.Z < MovementComponent->GetWalkableFloorZ();
@@ -181,7 +181,7 @@ bool UWallRunComponent::CanWallRunOnSurface(FVector SurfaceNormal)
 
 void UWallRunComponent::OnCharacterHit(AActor* SelfActor, AActor* OtherActor, FVector NormalImpulse, const FHitResult& Hit)
 {
-	check(MovementComponent)
+	if(!MovementComponent) return;
 	if (bIsWallRunning || !MovementComponent->IsFalling()) return; // Make sure we are not grounded or already wall running
 
 	// Check to see if we hit something that we can wall run on
@@ -198,11 +198,13 @@ void UWallRunComponent::OnCharacterHit(AActor* SelfActor, AActor* OtherActor, FV
 
 EWallSide UWallRunComponent::FindWallSide(FVector SurfaceNormal)
 {
-	check(MyOwner)
-	float DotProductResult = FVector2D::DotProduct(FVector2D(SurfaceNormal), FVector2D(MyOwner->GetActorRightVector()));
+	if (MyOwner)
+	{
+		float DotProductResult = FVector2D::DotProduct(FVector2D(SurfaceNormal), FVector2D(MyOwner->GetActorRightVector()));
 
-	// If the character's right vector is in the same direction as the wall's surface normal, the wall is on the left.
-	if (DotProductResult > 0) return EWallSide::Left;
+		// If the character's right vector is in the same direction as the wall's surface normal, the wall is on the left.
+		if (DotProductResult > 0) return EWallSide::Left;
+	}
 
 	// Otherwise, the wall is on the right.
 	return EWallSide::Right;
@@ -225,7 +227,7 @@ FVector UWallRunComponent::FindRunDirection(FVector SurfaceNormal, EWallSide Sid
 
 bool UWallRunComponent::WallRunKeysAreDown()
 {
-	check(MyOwner)
+	if(!MyOwner) return false;
 	// Must be running forward to wall run
 	if (MyOwner->GetInputAxisValue(InputAxisForward) < 0.1) return false;
 
@@ -244,7 +246,7 @@ bool UWallRunComponent::WallRunKeysAreDown()
 
 void UWallRunComponent::BeginWallRun()
 {
-	check(MovementComponent)
+	if(!MovementComponent) return;
 	// Restrict movement on the Z axis 
 	MovementComponent->SetPlaneConstraintNormal({ 0.f, 0.f, 1.f });
 	// Restrict rotation while wall running
@@ -277,7 +279,7 @@ void UWallRunComponent::WallRunUpdate()
 
 void UWallRunComponent::FallOffIfKeysAreNotDown()
 {
-	check(MyOwner)
+	if(!MyOwner) return;
 	// If required keys are not held down, we start a timer to determine if we should fall off. If the keys are still 
 	// not held down when the timer completes, we fall off the wall. This gives the player time to correct the mistake
 	if (!WallRunKeysAreDown() && !MyOwner->GetWorldTimerManager().IsTimerActive(TimerHandle_TimeToFallOff))
@@ -293,7 +295,7 @@ void UWallRunComponent::FallOffCallback()
 
 void UWallRunComponent::CharacterRotationUpdate(float DeltaTime)
 {
-	check(MyOwner)
+	if(!MyOwner) return;
 	// If we aren't wall running and the character roll is already zero, we don't need to do anything
 	if (!bIsWallRunning && CurrentCharacterRoll == 0.f) return;
 
@@ -321,8 +323,8 @@ void UWallRunComponent::CharacterRotationUpdate(float DeltaTime)
 
 void UWallRunComponent::EndWallRun(EWallRunEndReason Reason)
 {
-	check(MyOwner)
-	check(MovementComponent)
+	if(!MyOwner || !MovementComponent) return;
+
 	MyOwner->GetWorldTimerManager().ClearTimer(TimerHandle_TimeToFallOff);
 	if(Reason == EWallRunEndReason::FellOffWall) SetJumps(JumpsLeftAfterFalling);
 	MovementComponent->SetPlaneConstraintNormal({ 0.f, 0.f, 0.f });
@@ -334,7 +336,7 @@ void UWallRunComponent::EndWallRun(EWallRunEndReason Reason)
 
 bool UWallRunComponent::LineTraceToWall(FHitResult& HitResult)
 {
-	check(MyOwner)
+	if(!MyOwner) return false;
 	FVector LineTraceEnd;
 
 	switch (WallSide)
